@@ -17,7 +17,7 @@ from metrics import metric_base
 
 #----------------------------------------------------------------------------
 
-def run(dataset, data_dir, result_dir, config_id, num_gpus, total_kimg, gamma, mirror_augment, pkl_path):
+def run(dataset, data_dir, result_dir, num_gpus, total_kimg, mirror_augment, pkl_path):
     train     = EasyDict(run_func_name='training.training_loop.training_loop')              # Options for training loop.
     G         = EasyDict(func_name='training.networks_stylegan.G_style')                    # Options for generator network.
     D         = EasyDict(func_name='training.networks_stylegan.D_basic')                    # Options for discriminator network.
@@ -89,8 +89,12 @@ def _parse_comma_sep(s):
 
 _examples = '''examples:
 
-  # Train StyleGAN2 using the FFHQ dataset
-  python %(prog)s --num-gpus=4 --data-dir=~/datasets --dataset=yellow-real --mirror-augment=true
+  # Train StyleGAN using the FFHQ dataset
+  python %(prog)s --num-gpus=4 --data-dir=~/datasets --dataset=ffhq --mirror-augment=true
+
+  # Fine-tunning StyleGAN using yellow-real dataset
+  python %(prog)s --num-gpus=4 --data-dir=/data1/tfrecords --dataset=yellow-real --mirror-augment=true --pkl-path=./model/stylegan-ffhq-1024.pkl --total-kimg=10
+
 '''
 
 def main():
@@ -104,7 +108,7 @@ def main():
     parser.add_argument('--dataset', help='Training dataset', required=True)
     parser.add_argument('--num-gpus', help='Number of GPUs (default: %(default)s)', default=1, type=int, metavar='N')
     parser.add_argument('--total-kimg', help='Training length in thousands of images (default: %(default)s)', metavar='KIMG', default=25000, type=int)
-    parser.add_argument('--mirror-augment', help='Mirror augment (default: %(default)s)', default=True, metavar='BOOL', type=_str_to_bool)
+    parser.add_argument('--mirror-augment', help='Mirror augment (default: %(default)s)', default=False, metavar='BOOL', type=_str_to_bool)
     parser.add_argument('--pkl-path', help='Path to network pickle file', default='')
 
     args = parser.parse_args()

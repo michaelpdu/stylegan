@@ -13,6 +13,7 @@ from .submission.submit import SubmitTarget
 from .submission.submit import PathType
 from .submission.submit import SubmitConfig
 from .submission.submit import get_path_from_template
+from .submission.submit import convert_path
 from .submission.submit import submit_run
 
 from .util import EasyDict
