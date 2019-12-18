@@ -500,31 +500,44 @@ def create_celeba(tfrecord_dir, celeba_dir, cx=89, cy=121):
 
 #----------------------------------------------------------------------------
 
+def is_image_file(image_path):
+    if os.path.isfile(image_path) and \
+        os.path.splitext(image_path)[1] == '.png':
+        return True
+    else:
+        return False
+
 def create_from_images(tfrecord_dir, image_dir, shuffle):
     print('Loading images from "%s"' % image_dir)
-    image_filenames = sorted(glob.glob(os.path.join(image_dir, '*')))
+    image_filenames = sorted(glob.glob(os.path.join(image_dir, '**'), recursive=True))
+    # print(image_filenames)
     if len(image_filenames) == 0:
         error('No input images found')
 
-    img = np.asarray(PIL.Image.open(image_filenames[0]))
-    resolution = img.shape[0]
-    channels = img.shape[2] if img.ndim == 3 else 1
-    if img.shape[1] != resolution:
-        error('Input images must have the same width and height')
-    if resolution != 2 ** int(np.floor(np.log2(resolution))):
-        error('Input image resolution must be a power-of-two')
-    if channels not in [1, 3]:
-        error('Input images must be stored as RGB or grayscale')
+    for image_path in image_filenames:
+        if is_image_file(image_path):
+            img = np.asarray(PIL.Image.open(image_path))
+            resolution = img.shape[0]
+            channels = img.shape[2] if img.ndim == 3 else 1
+            if img.shape[1] != resolution:
+                error('Input images must have the same width and height')
+            if resolution != 2 ** int(np.floor(np.log2(resolution))):
+                error('Input image resolution must be a power-of-two')
+            if channels not in [1, 3]:
+                error('Input images must be stored as RGB or grayscale')
+            break
 
     with TFRecordExporter(tfrecord_dir, len(image_filenames)) as tfr:
         order = tfr.choose_shuffled_order() if shuffle else np.arange(len(image_filenames))
         for idx in range(order.size):
-            img = np.asarray(PIL.Image.open(image_filenames[order[idx]]))
-            if channels == 1:
-                img = img[np.newaxis, :, :] # HW => CHW
-            else:
-                img = img.transpose([2, 0, 1]) # HWC => CHW
-            tfr.add_image(img)
+            image_path = image_filenames[order[idx]]
+            if is_image_file(image_path):
+                img = np.asarray(PIL.Image.open(image_path))
+                if channels == 1:
+                    img = img[np.newaxis, :, :] # HW => CHW
+                else:
+                    img = img.transpose([2, 0, 1]) # HWC => CHW
+                tfr.add_image(img)
 
 #----------------------------------------------------------------------------
 
