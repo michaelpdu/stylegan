@@ -122,7 +122,6 @@ def training_loop(
     grid_args               = {},       # Options for train.setup_snapshot_image_grid().
     metric_arg_list         = [],       # Options for MetricGroup.
     tf_config               = {},       # Options for tflib.init_tf().
-    data_dir                = None,     # Directory to load datasets from.
     G_smoothing_kimg        = 10.0,     # Half-life of the running average of generator weights.
     D_repeats               = 1,        # How many times the discriminator is trained per G iteration.
     minibatch_repeats       = 4,        # Number of minibatches to run before adjusting training parameters.
@@ -144,11 +143,7 @@ def training_loop(
     tflib.init_tf(tf_config)
 
     # Load training set.
-    if data_dir is None:
-        dd = config.data_dir
-    else:
-        dd = dnnlib.convert_path(data_dir)
-    training_set = dataset.load_dataset(data_dir=dd, verbose=True, **dataset_args)
+    training_set = dataset.load_dataset(data_dir=config.data_dir, verbose=True, **dataset_args)
 
     # Construct networks.
     with tf.device('/gpu:0'):

@@ -8,6 +8,7 @@ import argparse
 import copy
 import os
 import sys
+import config
 
 import dnnlib
 from dnnlib import EasyDict
@@ -17,7 +18,7 @@ from metrics import metric_base
 
 #----------------------------------------------------------------------------
 
-def run(dataset, data_dir, result_dir, num_gpus, total_kimg, mirror_augment, pkl_path):
+def run(dataset, result_dir, num_gpus, total_kimg, mirror_augment, pkl_path):
     train     = EasyDict(run_func_name='training.training_loop.training_loop')              # Options for training loop.
     G         = EasyDict(func_name='training.networks_stylegan.G_style')                    # Options for generator network.
     D         = EasyDict(func_name='training.networks_stylegan.D_basic')                    # Options for discriminator network.
@@ -31,7 +32,6 @@ def run(dataset, data_dir, result_dir, num_gpus, total_kimg, mirror_augment, pkl
     sc        = dnnlib.SubmitConfig()                                                       # Options for dnnlib.submit_run().
     tf_config = {'rnd.np_random_seed': 1000}                                                # Options for tflib.init_tf().
 
-    train.data_dir = data_dir
     train.total_kimg = total_kimg
     train.mirror_augment = mirror_augment
     train.image_snapshot_ticks = train.network_snapshot_ticks = 10
@@ -104,7 +104,6 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('--result-dir', help='Root directory for run results (default: %(default)s)', default='results', metavar='DIR')
-    parser.add_argument('--data-dir', help='Dataset root directory', required=True)
     parser.add_argument('--dataset', help='Training dataset', required=True)
     parser.add_argument('--num-gpus', help='Number of GPUs (default: %(default)s)', default=1, type=int, metavar='N')
     parser.add_argument('--total-kimg', help='Training length in thousands of images (default: %(default)s)', metavar='KIMG', default=25000, type=int)
@@ -113,8 +112,11 @@ def main():
 
     args = parser.parse_args()
 
-    if not os.path.exists(args.data_dir):
-        print ('Error: dataset root directory does not exist.')
+    data_dir = dnnlib.convert_path(config.data_dir)
+    dataset_path = os.path.join(data_dir, args.dataset)
+    if not os.path.exists(dataset_path):
+        print('Error: dataset root directory does not exist. Try to modify `data_dir` in config.py')
+        print('>', dataset_path)
         sys.exit(1)
     
     run(**vars(args))
