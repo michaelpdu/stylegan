@@ -501,9 +501,13 @@ def create_celeba(tfrecord_dir, celeba_dir, cx=89, cy=121):
 #----------------------------------------------------------------------------
 
 def is_image_file(image_path):
-    if os.path.isfile(image_path) and \
-        os.path.splitext(image_path)[1] == '.png':
-        return True
+    if os.path.isfile(image_path):
+        _, ext = os.path.splitext(image_path)
+        ext = ext.lower()
+        if ext == '.png' and ext == '.jpg':
+            return True
+        else:
+            return False
     else:
         return False
 
