@@ -72,10 +72,12 @@ class TFRecordDataset:
         assert len(tfr_files) >= 1
         tfr_shapes = []
         for tfr_file in tfr_files:
+            # print('[MD] tfr_file: {}'.format(tfr_file))
             tfr_opt = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.NONE)
             for record in tf.python_io.tf_record_iterator(tfr_file, tfr_opt):
                 tfr_shapes.append(parse_tfrecord_np(record).shape)
                 break
+            # print('[MD] tfr_shapes:', tfr_shapes)
 
         # Autodetect label filename.
         if self.label_file is None:
@@ -89,14 +91,17 @@ class TFRecordDataset:
 
         # Determine shape and resolution.
         max_shape = max(tfr_shapes, key=np.prod)
+        # print('[MD] max_shape:', max_shape)
         self.resolution = resolution if resolution is not None else max_shape[1]
         self.resolution_log2 = int(np.log2(self.resolution))
         self.shape = [max_shape[0], self.resolution, self.resolution]
+        # print('[MD] resolution:', self.resolution, ', shape:', self.shape)
         tfr_lods = [self.resolution_log2 - int(np.log2(shape[1])) for shape in tfr_shapes]
+        # print('[MD] tfr_lods:', tfr_lods)
         assert all(shape[0] == max_shape[0] for shape in tfr_shapes)
         assert all(shape[1] == shape[2] for shape in tfr_shapes)
         assert all(shape[1] == self.resolution // (2**lod) for shape, lod in zip(tfr_shapes, tfr_lods))
-        assert all(lod in tfr_lods for lod in range(self.resolution_log2 - 1))
+        # assert all(lod in tfr_lods for lod in range(self.resolution_log2 - 1)) # make sure all of resolutions records which is less than and equal with current resolution does exist.
 
         # Load labels.
         assert max_label_size == 'full' or max_label_size >= 0
