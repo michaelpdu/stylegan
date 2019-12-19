@@ -1,4 +1,13 @@
-## StyleGAN &mdash; Official TensorFlow Implementation
+## StyleGAN
+
+感谢NVIDIA开源这么好的工具！
+
+在这里，主要是借助StyleGAN的强大能力做一些fine-tunning，转变成自己期望的输出，如：生成亚洲人脸，或者图像中背景部分稍微增大一些。
+
+
+下面是原著的README：
+
+---
 ![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg?style=plastic)
 ![TensorFlow 1.10](https://img.shields.io/badge/tensorflow-1.10-green.svg?style=plastic)
 ![cuDNN 7.3.1](https://img.shields.io/badge/cudnn-7.3.1-green.svg?style=plastic)
