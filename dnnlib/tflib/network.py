@@ -23,6 +23,14 @@ from .. import util
 
 from .tfutil import TfExpression, TfExpressionEx
 
+ENABLE_LEARNABLE_NOISE = True
+if ENABLE_LEARNABLE_NOISE:
+    import os
+    from os.path import dirname, realpath
+    root_dir = dirname(dirname(dirname(realpath(__file__))))
+    sys.path.append(root_dir)
+    from training.networks_stylegan import G_synthesis
+
 _import_handlers = []  # Custom import handlers for dealing with legacy data in pickle import.
 _import_module_src = dict()  # Source code for temporary modules created during pickle import.
 
@@ -291,7 +299,10 @@ class Network:
         exec(self._build_module_src, module.__dict__) # pylint: disable=exec-used
 
         # Locate network build function in the temporary module.
-        self._build_func = util.get_obj_from_module(module, self._build_func_name)
+        if self._build_func_name == 'G_synthesis':
+            self._build_func = G_synthesis
+        else:
+            self._build_func = util.get_obj_from_module(module, self._build_func_name)
         assert callable(self._build_func)
 
         # Init TensorFlow graph.
@@ -360,7 +371,7 @@ class Network:
             minibatch_size: int = None,
             num_gpus: int = 1,
             assume_frozen: bool = False,
-            custom_inputs=None,
+            custom_inputs = None,
             **dynamic_kwargs) -> Union[np.ndarray, Tuple[np.ndarray, ...], List[np.ndarray]]:
         """Run this network for the given NumPy array(s), and return the output(s) as NumPy array(s).
 
@@ -377,7 +388,7 @@ class Network:
             num_gpus:           Number of GPUs to use.
             assume_frozen:      Improve multi-GPU performance by assuming that the trainable parameters will remain changed between calls.
             dynamic_kwargs:     Additional keyword arguments to be passed into the network build function.
-            custom_inputs:      Allow to use another Tensor as input instead of default Placeholders
+            custom_inputs:      Allow to use another Tensor as input instead of default Placeholders 
         """
         assert len(in_arrays) == self.num_inputs
         assert not all(arr is None for arr in in_arrays)
@@ -389,7 +400,8 @@ class Network:
             minibatch_size = num_items
 
         # Construct unique hash key from all arguments that affect the TensorFlow graph.
-        key = dict(input_transform=input_transform, output_transform=output_transform, num_gpus=num_gpus, assume_frozen=assume_frozen, dynamic_kwargs=dynamic_kwargs)
+        key = dict(input_transform=input_transform, output_transform=output_transform, \
+            num_gpus=num_gpus, assume_frozen=assume_frozen, dynamic_kwargs=dynamic_kwargs)
         def unwind_key(obj):
             if isinstance(obj, dict):
                 return [(key, unwind_key(value)) for key, value in sorted(obj.items())]

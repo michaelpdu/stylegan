@@ -10,7 +10,8 @@
 import numpy as np
 import tensorflow as tf
 import dnnlib
-import dnnlib.tflib as tflib
+# import dnnlib.tflib as tflib
+from dnnlib.tflib import tfutil as tflib
 
 # NOTE: Do not import any application-specific modules here!
 # Specify all network parameters as kwargs.
@@ -484,7 +485,8 @@ def G_synthesis(
         for layer_idx in range(num_layers):
             res = layer_idx // 2 + 2
             shape = [1, use_noise, 2**res, 2**res]
-            noise_inputs.append(tf.get_variable('noise%d' % layer_idx, shape=shape, initializer=tf.initializers.random_normal(), trainable=False))
+            noise_inputs.append(tf.get_variable('noise%d' % layer_idx, shape=shape, \
+                initializer=tf.initializers.random_normal(), trainable=True))
 
     # Things to do at the end of each layer.
     def layer_epilogue(x, layer_idx):
